@@ -1,0 +1,7 @@
+[
+  "tests/test_app.py::test_dashboard_requires_login",
+  "tests/test_app.py::test_history_and_item_operations",
+  "tests/test_app.py::test_login_page_renders",
+  "tests/test_app.py::test_translate_endpoint_with_tone",
+  "tests/test_app.py::test_translate_endpoint_with_valid_csrf"
+]

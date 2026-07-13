@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Translator Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <script>
+    if (localStorage.getItem('theme') === 'light') {
+      document.body.classList.add('light');
+    }
+  </script>
+  <div class="page-shell">
+    <header class="topbar glass-card">
+      <div>
+        <p class="eyebrow">AI-powered translator</p>
+        <h2>Welcome back, {{ session['user'] }}</h2>
+      </div>
+      <div class="topbar-actions">
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌙</button>
+        <a href="{{ url_for('logout') }}" class="secondary-btn">Logout</a>
+      </div>
+    </header>
+
+    <section class="dashboard-grid">
+      <div class="glass-card stat-card">
+        <p class="eyebrow">Total translations</p>
+        <h3>{{ total_translations }}</h3>
+      </div>
+      <div class="glass-card stat-card">
+        <p class="eyebrow">Recent history</p>
+        <h3>{{ history|length }}</h3>
+      </div>
+      <div class="glass-card translator-card">
+        <div class="toolbar">
+          <div class="pill">Auto-detect</div>
+          <div class="pill">{{ session['user'] }}</div>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <input type="hidden" name="csrf_token" id="csrf_token" value="{{ csrf_token }}" />
+        <div class="translator-layout">
+          <div class="field-card">
+            <div class="field-header">
+              <label>Source Language</label>
+              <select id="sourceLang">
+                <option value="auto" selected>Auto Detect</option>
+                <optgroup label="Indian Languages">
+                  <option value="hi">Hindi (हिन्दी)</option>
+                  <option value="bho">Bhojpuri (भोजपुरी)</option>
+                  <option value="bn">Bengali (বাংলা)</option>
+                  <option value="te">Telugu (తెలుగు)</option>
+                  <option value="mr">Marathi (मराठी)</option>
+                  <option value="ta">Tamil (தமிழ்)</option>
+                  <option value="ur">Urdu (اردو)</option>
+                  <option value="gu">Gujarati (ગુજરાતી)</option>
+                  <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                  <option value="ml">Malayalam (മലയാളം)</option>
+                  <option value="or">Odia (ଓଡ଼ିଆ)</option>
+                  <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                  <option value="as">Assamese (অসমীয়া)</option>
+                  <option value="mai">Maithili (मैथिली)</option>
+                  <option value="sa">Sanskrit (संस्कृतम्)</option>
+                  <option value="gom">Konkani (कोंकणी)</option>
+                  <option value="ne">Nepali (नेपाली)</option>
+                  <option value="sd">Sindhi (सिन्धी)</option>
+                  <option value="ks">Kashmiri (कॉशुर)</option>
+                  <option value="mni">Manipuri (मणिपूरी)</option>
+                  <option value="sat">Santali (संताली)</option>
+                  <option value="brx">Bodo (बर')</option>
+                  <option value="doi">Dogri (डोगरी)</option>
+                </optgroup>
+                <optgroup label="International Languages">
+                  <option value="en">English</option>
+                  <option value="es">Spanish (Español)</option>
+                  <option value="fr">French (Français)</option>
+                  <option value="de">German (Deutsch)</option>
+                  <option value="it">Italian (Italiano)</option>
+                  <option value="pt">Portuguese (Português)</option>
+                  <option value="ar">Arabic (العربية)</option>
+                  <option value="ja">Japanese (日本語)</option>
+                  <option value="ko">Korean (한국어)</option>
+                  <option value="zh">Chinese (中文)</option>
+                </optgroup>
+              </select>
+            </div>
+            <textarea id="sourceText" placeholder="Type or speak something..."></textarea>
+            <div class="field-footer">
+              <span id="charCount">0 / 1000</span>
+              <div class="action-group">
+                <button id="voiceButton" class="icon-btn" title="Voice Input">🎤</button>
+                <button id="speakSourceButton" class="secondary-btn" title="Listen to Source Text">Speak</button>
+                <button id="copySourceButton" class="secondary-btn" title="Copy Source Text">Copy</button>
+                <button id="clearButton" class="secondary-btn">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-card">
+            <div class="field-header">
+              <label>Target Language</label>
+              <select id="targetLang">
+                <optgroup label="Indian Languages">
+                  <option value="hi" selected>Hindi (हिन्दी)</option>
+                  <option value="bho">Bhojpuri (भोजपुरी)</option>
+                  <option value="bn">Bengali (বাংলা)</option>
+                  <option value="te">Telugu (తెలుగు)</option>
+                  <option value="mr">Marathi (मराठी)</option>
+                  <option value="ta">Tamil (தமிழ்)</option>
+                  <option value="ur">Urdu (اردو)</option>
+                  <option value="gu">Gujarati (ગુજરાતી)</option>
+                  <option value="kn">Kannada (ಕನ್ನಡ)</option>
+                  <option value="ml">Malayalam (മലയാളം)</option>
+                  <option value="or">Odia (ଓଡ଼ିଆ)</option>
+                  <option value="pa">Punjabi (ਪੰਜਾਬੀ)</option>
+                  <option value="as">Assamese (অসমীয়া)</option>
+                  <option value="mai">Maithili (मैथिली)</option>
+                  <option value="sa">Sanskrit (संस्कृतम्)</option>
+                  <option value="gom">Konkani (कोंकणी)</option>
+                  <option value="ne">Nepali (नेपाली)</option>
+                  <option value="sd">Sindhi (सिन्धी)</option>
+                  <option value="ks">Kashmiri (कॉशुर)</option>
+                  <option value="mni">Manipuri (मणिपूरी)</option>
+                  <option value="sat">Santali (संताली)</option>
+                  <option value="brx">Bodo (बर')</option>
+                  <option value="doi">Dogri (डोगरी)</option>
+                </optgroup>
+                <optgroup label="International Languages">
+                  <option value="en">English</option>
+                  <option value="es">Spanish (Español)</option>
+                  <option value="fr">French (Français)</option>
+                  <option value="de">German (Deutsch)</option>
+                  <option value="it">Italian (Italiano)</option>
+                  <option value="pt">Portuguese (Português)</option>
+                  <option value="ar">Arabic (العربية)</option>
+                  <option value="ja">Japanese (日本語)</option>
+                  <option value="ko">Korean (한국어)</option>
+                  <option value="zh">Chinese (中文)</option>
+                </optgroup>
+              </select>
+            </div>
+            <textarea id="translatedText" placeholder="Translation appears here..." readonly></textarea>
+            
+            <!-- Voice Customization Settings -->
+            <div class="voice-settings-panel">
+              <div class="voice-row flex-row">
+                <div class="select-wrapper">
+                  <label for="voiceSelect">Select Voice</label>
+                  <select id="voiceSelect">
+                    <option value="default">Default System Voice</option>
+                  </select>
+                </div>
+                <div class="switch-wrapper">
+                  <label class="switch-container">
+                    <input type="checkbox" id="autoSpeak" />
+                    <span class="switch-slider"></span>
+                    <span class="switch-label">Auto-Speak</span>
+                  </label>
+                </div>
+              </div>
+              <div class="voice-row sliders-row">
+                <div class="slider-group">
+                  <div class="slider-header">
+                    <label for="voiceRate">Speed</label>
+                    <span id="rateVal">1.0x</span>
+                  </div>
+                  <input type="range" id="voiceRate" min="0.5" max="2.0" step="0.1" value="1.0" />
+                </div>
+                <div class="slider-group">
+                  <div class="slider-header">
+                    <label for="voicePitch">Pitch</label>
+                    <span id="pitchVal">1.0x</span>
+                  </div>
+                  <input type="range" id="voicePitch" min="0.5" max="2.0" step="0.1" value="1.0" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field-footer">
+              <div class="action-group">
+                <button id="copyButton" class="secondary-btn">Copy</button>
+                <button id="speakButton" class="secondary-btn">Speak</button>
+                <button id="shareWhatsAppButton" class="secondary-btn" title="Share on WhatsApp">WhatsApp</button>
+                <button id="downloadTextButton" class="secondary-btn" title="Download translation as Text">Download</button>
+              </div>
+              <button id="swapButton" class="icon-btn">⇄</button>
+            </div>
+          </div>
+        </div>
+        <div class="actions-row">
+          <div class="tone-select-group">
+            <label for="translationTone">Translation Tone</label>
+            <select id="translationTone">
+              <option value="auto" selected>Auto / Default</option>
+              <option value="formal">Formal (आदरसूचक)</option>
+              <option value="informal">Informal (अनौपचारिक)</option>
+            </select>
+          </div>
+          <div class="translate-actions">
+            <button id="translateButton" class="primary-btn">Translate</button>
+            <span id="loading" class="loading hidden"><span class="spinner"></span> Translating...</span>
+          </div>
+        </div>
+      </div>
+      <div class="glass-card history-card">
+        <div class="history-header">
+          <h3>Translation History</h3>
+          <button id="clearHistoryButton" class="secondary-btn clear-history-btn">Clear All</button>
+        </div>
+        <div class="history-controls">
+          <input type="text" id="historySearch" placeholder="Search translations..." />
+          <div class="history-tabs">
+            <button id="tabAll" class="history-tab active">All</button>
+            <button id="tabStarred" class="history-tab">⭐ Starred</button>
+          </div>
+        </div>
+        <ul class="history-list" id="historyList">
+          <li class="history-empty">Loading history...</li>
+        </ul>
+      </div>
+
+      <!-- Quick Phrasebook Widget -->
+      <div class="glass-card phrasebook-card">
+        <div class="phrasebook-header">
+          <h3>Quick Phrasebook (फ़्रेज़बुक)</h3>
+          <p class="phrasebook-desc">Click any common expression below to load and translate it instantly</p>
+        </div>
+        <div class="phrasebook-tabs">
+          <button class="phrasebook-tab active" data-category="greetings">Greetings (अभिवादन)</button>
+          <button class="phrasebook-tab" data-category="conversation">Conversation (बातचीत)</button>
+          <button class="phrasebook-tab" data-category="travel">Travel & Utility (यात्रा और उपयोग)</button>
+        </div>
+        <div class="phrasebook-grid" id="phrasebookGrid">
+          <!-- Phrases will be rendered dynamically by JavaScript -->
+        </div>
+      </div>
+    </section>
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
